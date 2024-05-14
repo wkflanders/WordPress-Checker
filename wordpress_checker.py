@@ -21,10 +21,8 @@ def check_sites(site_list):
 
 if __name__ == "__main__":
     sites = [
-        "https://example1.com",
-        "https://example2.com",
-        "https://example3.com",
-        # Add more sites here
+        "https://raffleleader.com",
+        "https://stackoverflow.com",
     ]
 
     wp_sites = check_sites(sites)
