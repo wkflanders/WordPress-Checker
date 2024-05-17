@@ -111,9 +111,9 @@ def save_sites_to_csv(sites, output_file):
 if __name__ == "__main__":
     verified_sites = []
 
-    file_path = 'site_list.csv'  # Specify your CSV file path here
-    column_name = 'Company URL'  # Change this to the actual column name containing the URLs
-    output_file = 'verified_sites.csv'  # Specify the output CSV file path
+    file_path = 'site_list.csv' 
+    column_name = 'Company URL'  
+    output_file = 'verified_sites.csv'  
 
     sites = read_sites_from_csv(file_path, column_name)
 
@@ -131,5 +131,6 @@ if __name__ == "__main__":
         print(f"Elapsed time: {elapsed_time:.2f} seconds")
     else:
         print("No sites to check.")    
+
 
 
