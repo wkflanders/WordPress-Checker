@@ -1,6 +1,23 @@
 import requests
+from urllib.parse import urlparse, urlunparse
+import argparse
+import os
 import csv
 import time
+
+def clean_url(url):
+    # Parse the URL
+    parsed = urlparse(url)
+    # Reconstruct the URL, ensuring no double slashes in the path
+    cleaned = urlunparse((
+        parsed.scheme,
+        parsed.netloc,
+        '/' + parsed.path.lstrip('/'),
+        parsed.params,
+        parsed.query,
+        parsed.fragment
+    ))
+    return cleaned.rstrip('/')
 
 def is_wordpress_site(url):
     try:
@@ -86,19 +103,26 @@ def read_sites_from_csv(file_path, column_name):
         with open(file_path, mode='r', encoding='utf-8') as file:
             csv_reader = csv.DictReader(file)
             for row in csv_reader:
-                if column_name in row and row[column_name].strip():
+                if column_name in row and row[column_name]:
                     url = row[column_name].strip()
-                    if not url.startswith(('http://', 'https://')):
-                        url = 'https://' + url
-                    sites.append(url)
+                    if url:  # Check if URL is not empty
+                        if not url.startswith(('http://', 'https://')):
+                            url = 'https://' + url
+                        url = clean_url(url)
+                        sites.append(url)
     except FileNotFoundError:
         print(f"File {file_path} not found.")
     except UnicodeDecodeError as e:
         print(f"Error decoding file {file_path}: {e}")
+    
+    print(f"Total sites found: {len(sites)}")
+    if not sites:
+        print("No valid URLs found in the CSV file.")
     return sites
 
 def save_sites_to_csv(sites, output_file):
     try:
+        os.makedirs(os.path.dirname(output_file), exist_ok=True)
         with open(output_file, mode='w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
             writer.writerow(['URL'])
@@ -109,11 +133,17 @@ def save_sites_to_csv(sites, output_file):
         print(f"Error saving to {output_file}: {e}")
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Check websites for WordPress installation.")
+    parser.add_argument('--csv', help='Path to the CSV file', required=True)
+    parser.add_argument('--column', help='Name of the column containing URLs', default='Company URL')
+    parser.add_argument('--output', help='Path to the output CSV file', default='verified_sites.csv')
+    args = parser.parse_args()
+
     verified_sites = []
 
-    file_path = 'site_list.csv' 
-    column_name = 'Company URL'  
-    output_file = 'verified_sites.csv'  
+    file_path = args.csv
+    column_name = args.column
+    output_file = args.output
 
     sites = read_sites_from_csv(file_path, column_name)
 
@@ -130,7 +160,7 @@ if __name__ == "__main__":
         save_sites_to_csv(verified_sites, output_file)
         print(f"Elapsed time: {elapsed_time:.2f} seconds")
     else:
-        print("No sites to check.")    
+        print("No sites to check.")   
 
 
 
